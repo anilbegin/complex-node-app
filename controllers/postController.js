@@ -1,5 +1,7 @@
 const { response } = require('express') //this line is getting automatically getting created
 const Post = require('../models/Post')
+const sendgrid = require('@sendgrid/mail')
+sendgrid.setApiKey(process.env.SENDGRIDAPIKEY)
 
 exports.viewCreateScreen = function(req, res){
     res.render('create-post')
@@ -8,7 +10,14 @@ exports.viewCreateScreen = function(req, res){
 exports.create = function(req,res) {
     let post = new Post(req.body, req.session.user._id)
     post.create().then(function(newId){
-       req.flash("success", "New Post successfully created")
+       sendgrid.send({
+           to: 'acesystest@gmail.com',
+           from: 'acesystest@gmail.com',
+           subject: 'Congrats on creating a new Post',
+           text: 'You did a great job of creating apost',
+           html: 'You did a <strong>great</strong> job of creating a post' 
+       })
+        req.flash("success", "New Post successfully created")
        req.session.save(() => res.redirect(`/post/${newId}`))
     }).catch(function(errors){
         errors.forEach(error => req.flash("errors", error))
